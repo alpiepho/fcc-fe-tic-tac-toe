@@ -209,6 +209,10 @@ class TicTacToe {
     return -1;
   }
 
+  isOpen(slot) {
+    return (ttt.slots[slot] == this.SLOT_);
+  }
+
   // check the board for win/draw
   check() {
     var result = this.INPLAY;
@@ -339,6 +343,9 @@ class SimplePlayer {
 
 // MODEL - ExpertPlayer
 class ExpertPlayer {
+  constructor() {
+    this.weStarted = false;
+  }
   move(model, currentXor0) {
     if (model.check() !== model.INPLAY)
       return -1;
@@ -354,10 +361,27 @@ class ExpertPlayer {
 
     // TODO: add rules
     // if first move pick a corner
-    if (model.moves.length === 0)
+    if (model.moves.length === 0) {
+      this.weStarted = true;
       return 0;
+    }
 
-    return -1;
+    // if we started and user took middle
+    if (this.weStarted && !model.isOpen(4)) {
+      // pick another corner
+      if (model.isOpen(2))
+        return 2;
+      else if (model.isOpen(6))
+        return 6;
+      else if (model.isOpen(8))
+        return 8;
+    } else {
+      // try middle
+      if (model.isOpen(4))
+        return 4;
+    }
+    // no rules applied, so just take first open
+    return model.firstOpen();
   }
 } // class ExpertPlayer
 
