@@ -16,24 +16,20 @@
   outline: none;
 }
 
-.btn-both {
+.b-both {
   border-radius: 5px;
 }
 
-.btn-left {
+.b-left {
   border-radius: 5px 0 0 5px;
 }
 
-.btn-right {
+.b-right {
   border-radius: 0 5px 5px 0;
 }
 
-.btn-on {
+.b-on {
   background-color: grey;
-}
-
-.btn-off {
-  background-color: white;
 }
 
 .won {
@@ -44,6 +40,6 @@
   color: blue;
 }
 
-footer {
+.footer {
   margin-top: 50px;
 }

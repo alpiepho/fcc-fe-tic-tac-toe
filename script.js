@@ -1,4 +1,7 @@
 
+//
+// CONTROLLER
+//
 var givenUseX = true;
 var useX      = true;
 var players   = 1;
@@ -7,17 +10,16 @@ var auto      = true;
 var ttt;
 var gameState;
 
+var simplePlayer;
+var expertPlayer;
+
 function styleButtons(b1, b2, state) {
-  $(b1).removeClass("btn-on");
-  $(b2).removeClass("btn-on");
-  $(b1).removeClass("btn-off");
-  $(b2).removeClass("btn-off");
+  $(b1).removeClass("b-on");
+  $(b2).removeClass("b-on");
   if (state) {
-    $(b1).addClass("btn-on");
-    $(b2).addClass("btn-off");
+    $(b1).addClass("b-on");
   } else {
-    $(b1).addClass("btn-off");
-    $(b2).addClass("btn-on");
+    $(b2).addClass("b-on");
   }
 }
 
@@ -27,17 +29,17 @@ function styleWin() {
     $(id).addClass("won");
   }
   if (gameState === ttt.WINX)
-    $("#status").text("X wins!!!");
+    $("#gstat").text("X wins!!!");
   else
-    $("#status").text("0 wins!!!");
-  $("#status").addClass("won");
+    $("#gstat").text("0 wins!!!");
+  $("#gstat").addClass("won");
 
 }
 
 function styleDraw() {
   $(".val").addClass("draw");
-  $("#status").text("draw :(");
-  $("#status").addClass("draw");
+  $("#gstat").text("draw :(");
+  $("#gstat").addClass("draw");
 }
 
 function setX(value) {
@@ -68,11 +70,9 @@ function setAuto(value) {
 
 function clearBoard() {
   $(".val").text("_");
-  $("span").removeClass("won");
-  $("span").removeClass("draw");
-  $("#status").text("game in progess...");
-  $("#status").removeClass("won");
-  $("#status").removeClass("draw");
+  $("span").removeClass("won").removeClass("draw");
+  $("#gstat").text("game in progess...");
+  $("#gstat").removeClass("won").removeClass("draw");
   useX = givenUseX;
   ttt.init();
   gameState = ttt.INPLAY;
@@ -86,14 +86,12 @@ function setCell(slot) {
     return;
   }
 
-  var id = "#v" + slot;
-
   if (useX) {
-    $(id).text("X");
+    $("#v" + slot).text("X");
     ttt.move(ttt.SLOTX, slot);
   }
   else {
-    $(id).text("0");
+    $("#v" + slot).text("0");
     ttt.move(ttt.SLOT0, slot);
 
   }
@@ -115,43 +113,45 @@ function setCell(slot) {
 
 $(document).ready(function() {
   ttt = new TicTacToe();
+  simplePlayer = new SimplePlayer();
+  expertPlayer = new ExpertPlayer();
   clearBoard();
 
   $("#b1").click(function() { setX(true); });
   $("#b2").click(function() { setX(false); });
   setX(useX);
+
   $("#b3").click(function() { setPlayers(1); });
   $("#b4").click(function() { setPlayers(2); });
   setPlayers(players);
+
   $("#b5").click(function() { setAuto(true); });
   $("#b6").click(function() { setAuto(false); });
   setAuto(auto);
+
   $("#b7").click(function() { clearBoard(); });
+
   $(".cell").click(function(e) {
-    // e.target.id could be cellNN or valNN, get NN
+    // e.target.id could be cNN or vNN, get NN
     var slot;
-    console.log(e.target.id);
     slot = e.target.id.replace("c", "").replace("v", "");
     slot = Number.parseInt(slot);
     setCell(slot);
 
+    // handle 1 player
     if (players === 1) {
+      var playerXor0 = (useX ? ttt.SLOTX : ttt.SLOT0);
       if (auto)
-        slot = ttt.expertOpponentMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
+        slot = expertPlayer.move(ttt, playerXor0);
       else
-        slot = ttt.simpleOpponentMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
+        slot = simplePlayer.move(ttt, playerXor0);
       setCell(slot);
     }
 
   });
 });
 
-
-
-
-
-
-// class for the Tic Tac Toe Game
+// MODEL - TicTacToe
 class TicTacToe {
   constructor() {
     // slot values weighted for fast win determination
@@ -182,9 +182,18 @@ class TicTacToe {
 
   // process a move
   move(who, slot) {
-    console.log(slot);
     this.slots[slot] = who;
     this.moves++;
+  }
+
+  // get first open slot
+  firstOpen() {
+    for (var slot=0; slot<9; slot++) {
+      if (ttt.slots[slot] == this.SLOT_) {
+        return slot;
+      }
+    }
+    return -1;
   }
 
   // check the board for win/draw
@@ -244,7 +253,6 @@ class TicTacToe {
     return result;
   }
 
-  // NOTE: these could be another class, randomPlayer/autoPlayer
   canWin(currentXor0) {
     var result = false;
     this.winSlots = [];
@@ -296,49 +304,36 @@ class TicTacToe {
       this.winSlots = [ slot ];
       result = true;
      }
-
     return result;
   }
-
-  // NOTE: this could be another class, randomPlayer
-  simpleOpponentMove(currentXor0) {
-    if (this.check() !== this.INPLAY)
-      return 0;
-
-    // first check if there is a must block
-    if (this.canWin(currentXor0))
-      return ttt.winSlots[0];
-
-    // ok, not random, just first open slot
-    for (var slot=0; slot<9; slot++) {
-      if (ttt.slots[slot] == this.SLOT_) {
-        return slot;
-      }
-    }
-    return 0;
-  }
-
-
-  // NOTE: this could be another class, autoPlayer
-  expertOpponentMove(currentXor0) {
-    if (this.check() !== this.INPLAY)
-      return 0;
-
-    // first check if there is a must block
-    if (this.canWin(currentXor0))
-      return ttt.winSlots[0];
-/*
-    // ok, not random, just first open slot
-    for (var x=0; x<3; x++) {
-      for (var y=0; y<3; y++) {
-        if (ttt.slots[x][y] == this.SLOT_) {
-          var slot = (x+1)*10 + (y+1);
-          return slot;
-        }
-      }
-    }
-    */
-    return 0;
-  }
-
 } // class TicTacToe
+
+// MODEL - SimplePlayer
+class SimplePlayer {
+  move(model, currentXor0) {
+    if (model.check() !== model.INPLAY)
+      return -1;
+
+    // first check if there is a must block
+    if (model.canWin(currentXor0))
+      return model.winSlots[0];
+
+    // ok, not random, just first open slot
+    return model.firstOpen();
+  }
+} // class SimplePlayer
+
+// MODEL - ExpertPlayer
+class ExpertPlayer {
+  move(model, currentXor0) {
+    if (model.check() !== model.INPLAY)
+      return -1;
+
+    // first check if there is a must block
+    if (model.canWin(currentXor0))
+      return model.winSlots[0];
+
+    // TODO: add rules
+    return -1;
+  }
+} // class ExpertPlayer
