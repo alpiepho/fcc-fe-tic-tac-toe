@@ -13,6 +13,8 @@ var gameState;
 var simplePlayer;
 var expertPlayer;
 
+var tests;
+
 function styleButtons(b1, b2, state) {
   $(b1).removeClass("b-on");
   $(b2).removeClass("b-on");
@@ -76,6 +78,7 @@ function clearBoard() {
   useX = givenUseX;
   ttt.init();
   gameState = ttt.INPLAY;
+  $("#tstat").text("").removeClass("passed").removeClass("failed");
 }
 
 function setCell(slot) {
@@ -131,6 +134,16 @@ $(document).ready(function() {
 
   $("#b7").click(function() { clearBoard(); });
 
+  $("#b8").click(function() {
+    var playerXor0 = (useX ? ttt.SLOT0 : ttt.SLOTX);
+    var tester = new TestExpert(ttt, expertPlayer, playerXor0);
+    $("#tstat").text("test auto first...");
+    if (tester.testExpertFirst(3))
+      $("#tstat").text("PASSED").addClass("passed");
+    else
+      $("#tstat").text("FAILED").addClass("failed");
+  });
+
   $(".cell").click(function(e) {
     // e.target.id could be cNN or vNN, get NN
     var slot;
@@ -164,7 +177,7 @@ class TicTacToe {
     this.WIN0   = 2;
     this.DRAW   = 3;
     this.winSlots = [];
-    this.moves = 0;
+    this.moves = [];
 
     this.init();
   }
@@ -177,13 +190,13 @@ class TicTacToe {
       this.SLOT_,this.SLOT_,this.SLOT_
     ];
     this.winSlots = [];
-    this.moves = 0;
+    this.moves = [];
   }
 
   // process a move
   move(who, slot) {
     this.slots[slot] = who;
-    this.moves++;
+    this.moves.push(slot);
   }
 
   // get first open slot
@@ -340,6 +353,31 @@ class ExpertPlayer {
       return model.winSlots[0];
 
     // TODO: add rules
+    // if first move pick a corner
+    if (model.moves.length === 0)
+      return 0;
+
     return -1;
+  }
+} // class ExpertPlayer
+
+
+
+
+// TESTER
+class TestExpert {
+  constructor(model, player, playerXor0) {
+    this.model      = model;
+    this.player     = player;
+    this.playerXor0 = playerXor0;
+  }
+  testExpertFirst(userXor0) {
+    var result = true;
+
+    var playerSlot = this.player.move(this.model, this.playerXor0);
+    this.model.move(this.playerXor0, playerSlot);
+    console.log(playerSlot);
+
+    return result;
   }
 } // class ExpertPlayer

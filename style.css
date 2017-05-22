@@ -40,6 +40,14 @@
   color: blue;
 }
 
+.passed {
+  color: green;
+}
+
+.failed {
+  color: red;
+}
+
 .footer {
   margin-top: 50px;
 }
