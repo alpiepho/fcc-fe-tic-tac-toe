@@ -256,7 +256,7 @@ class TicTacToe {
   canWin(currentXor0) {
     var result = false;
     this.winSlots = [];
-    if (currentXor0 === this.SLOT0) {
+    if (currentXor0 === this.SLOTX) {
       // if we are currently 0, check for any near wins of X
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 2)
         this.winSlots = [0, 1, 2];
@@ -275,7 +275,7 @@ class TicTacToe {
       if ((this.slots[2] + this.slots[4] + this.slots[6]) === 2)
         this.winSlots = [2, 4, 6];
      }
-    if (currentXor0 === this.SLOTX) {
+    if (currentXor0 === this.SLOT0) {
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 10)
         this.winSlots = [0, 1, 2];
       if ((this.slots[3] + this.slots[4] + this.slots[5]) === 10)
@@ -314,8 +314,9 @@ class SimplePlayer {
     if (model.check() !== model.INPLAY)
       return -1;
 
-    // first check if there is a must block
-    if (model.canWin(currentXor0))
+    // check if there is a must block
+    var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
+    if (model.canWin(userXor0))
       return model.winSlots[0];
 
     // ok, not random, just first open slot
@@ -329,8 +330,13 @@ class ExpertPlayer {
     if (model.check() !== model.INPLAY)
       return -1;
 
-    // first check if there is a must block
+    // check if expert can win
     if (model.canWin(currentXor0))
+      return model.winSlots[0];
+
+    // check if there is a must block
+    var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
+    if (model.canWin(userXor0))
       return model.winSlots[0];
 
     // TODO: add rules
