@@ -1,0 +1,50 @@
+.f1 {
+  font-family: monospace;
+  font-size: 7em;
+}
+
+.f2 {
+  font-family: monospace;
+  font-size: 2em;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.f2 button {
+  font-family: monospace;
+  font-size: 1em;
+  outline: none;
+}
+
+.btn-both {
+  border-radius: 5px;
+}
+
+.btn-left {
+  border-radius: 5px 0 0 5px;
+}
+
+.btn-right {
+  border-radius: 0 5px 5px 0;
+}
+
+.btn-on {
+  background-color: grey;
+}
+
+.btn-off {
+  background-color: white;
+}
+
+.won {
+  color: red;
+}
+
+.draw {
+  color: blue;
+}
+
+footer {
+  margin-top: 50px;
+}
+
