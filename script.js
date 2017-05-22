@@ -187,9 +187,9 @@ class TicTacToe {
   // iniialize the board
   init () {
     this.slots = [
-      [this.SLOT_,this.SLOT_,this.SLOT_],
-      [this.SLOT_,this.SLOT_,this.SLOT_],
-      [this.SLOT_,this.SLOT_,this.SLOT_]
+      this.SLOT_,this.SLOT_,this.SLOT_,
+      this.SLOT_,this.SLOT_,this.SLOT_,
+      this.SLOT_,this.SLOT_,this.SLOT_
     ];
     this.winSlots = [];
     this.moves = 0;
@@ -197,9 +197,13 @@ class TicTacToe {
 
   // process a move
   move(who, slot) {
-    var x = (Number.parseInt(slot / 10)) -1;
-    var y = (slot % 10) -1;
-    this.slots[x][y] = who;
+    var y = (Number.parseInt(slot / 10)) -1;
+    var x = (slot % 10) -1;
+    console.log(slot);
+    console.log(x);
+    console.log(y);
+    console.log(y*3 + x);
+    this.slots[y*3 + x] = who;
     this.moves++;
   }
 
@@ -208,42 +212,42 @@ class TicTacToe {
     var result = this.INPLAY;
     if (result === this.INPLAY) {
       this.winSlots = [];
-      if ((this.slots[0][0] + this.slots[0][1] + this.slots[0][2]) === 3)
+      if ((this.slots[0] + this.slots[1] + this.slots[2]) === 3)
         this.winSlots = [11, 12, 13];
-      if ((this.slots[1][0] + this.slots[1][1] + this.slots[1][2]) === 3)
+      if ((this.slots[3] + this.slots[4] + this.slots[5]) === 3)
         this.winSlots = [21, 22, 23];
-      if ((this.slots[2][0] + this.slots[2][1] + this.slots[2][2]) === 3)
+      if ((this.slots[6] + this.slots[7] + this.slots[8]) === 3)
         this.winSlots = [31, 32, 33];
-      if ((this.slots[0][0] + this.slots[1][0] + this.slots[2][0]) === 3)
+      if ((this.slots[0] + this.slots[3] + this.slots[6]) === 3)
         this.winSlots = [11, 21, 31];
-      if ((this.slots[0][1] + this.slots[1][1] + this.slots[2][1]) === 3)
+      if ((this.slots[1] + this.slots[4] + this.slots[7]) === 3)
         this.winSlots = [12, 22, 32];
-      if ((this.slots[0][2] + this.slots[1][2] + this.slots[2][2]) === 3)
+      if ((this.slots[2] + this.slots[5] + this.slots[8]) === 3)
         this.winSlots = [13, 23, 33];
-      if ((this.slots[0][0] + this.slots[1][1] + this.slots[2][2]) === 3)
+      if ((this.slots[0] + this.slots[4] + this.slots[8]) === 3)
         this.winSlots = [11, 22, 33];
-      if ((this.slots[0][2] + this.slots[1][1] + this.slots[2][0]) === 3)
+      if ((this.slots[2] + this.slots[4] + this.slots[6]) === 3)
         this.winSlots = [13, 22, 31];
       if (this.winSlots.length > 0)
         result = this.WINX;
     }
     if (result === this.INPLAY) {
       this.winSlots = [];
-      if ((this.slots[0][0] + this.slots[0][1] + this.slots[0][2]) === 15)
+      if ((this.slots[0] + this.slots[1] + this.slots[2]) === 15)
         this.winSlots = [11, 12, 13];
-      if ((this.slots[1][0] + this.slots[1][1] + this.slots[1][2]) === 15)
+      if ((this.slots[3] + this.slots[4] + this.slots[5]) === 15)
         this.winSlots = [21, 22, 23];
-      if ((this.slots[2][0] + this.slots[2][1] + this.slots[2][2]) === 15)
+      if ((this.slots[6] + this.slots[7] + this.slots[8]) === 15)
         this.winSlots = [31, 32, 33];
-      if ((this.slots[0][0] + this.slots[1][0] + this.slots[2][0]) === 15)
+      if ((this.slots[0] + this.slots[3] + this.slots[6]) === 15)
         this.winSlots = [11, 21, 31];
-      if ((this.slots[0][1] + this.slots[1][1] + this.slots[2][1]) === 15)
+      if ((this.slots[1] + this.slots[4] + this.slots[7]) === 15)
         this.winSlots = [12, 22, 32];
-      if ((this.slots[0][2] + this.slots[1][2] + this.slots[2][2]) === 15)
+      if ((this.slots[2] + this.slots[5] + this.slots[8]) === 15)
         this.winSlots = [13, 23, 33];
-      if ((this.slots[0][0] + this.slots[1][1] + this.slots[2][2]) === 15)
+      if ((this.slots[0] + this.slots[4] + this.slots[8]) === 15)
         this.winSlots = [11, 22, 33];
-      if ((this.slots[0][2] + this.slots[1][1] + this.slots[2][0]) === 15)
+      if ((this.slots[2] + this.slots[4] + this.slots[6]) === 15)
         this.winSlots = [13, 22, 31];
       if (this.winSlots.length > 0)
         result = this.WIN0;
@@ -252,7 +256,7 @@ class TicTacToe {
       var done = true;
       for (var x=0; x<3; x++) {
         for (var y=0; y<3; y++) {
-          if (this.slots[x][y] === this.SLOT_)
+          if (this.slots[y*3 + x] === this.SLOT_)
             done = false;
         }
       }
@@ -263,44 +267,44 @@ class TicTacToe {
   }
 
   // NOTE: these could be another class, randomPlayer/autoPlayer
-  mustBlock(currentXor0) {
+  canWin(currentXor0) {
     var result = false;
     this.winSlots = [];
     if (currentXor0 === this.SLOT0) {
       // if we are currently 0, check for any near wins of X
-      if ((this.slots[0][0] + this.slots[0][1] + this.slots[0][2]) === 2)
+      if ((this.slots[0] + this.slots[1] + this.slots[2]) === 2)
         this.winSlots = [11, 12, 13];
-      if ((this.slots[1][0] + this.slots[1][1] + this.slots[1][2]) === 2)
+      if ((this.slots[3] + this.slots[4] + this.slots[5]) === 2)
         this.winSlots = [21, 22, 23];
-      if ((this.slots[2][0] + this.slots[2][1] + this.slots[2][2]) === 2)
+      if ((this.slots[6] + this.slots[7] + this.slots[8]) === 2)
         this.winSlots = [31, 32, 33];
-      if ((this.slots[0][0] + this.slots[1][0] + this.slots[2][0]) === 2)
+      if ((this.slots[0] + this.slots[3] + this.slots[6]) === 2)
         this.winSlots = [11, 21, 31];
-      if ((this.slots[0][1] + this.slots[1][1] + this.slots[2][1]) === 2)
+      if ((this.slots[1] + this.slots[4] + this.slots[7]) === 2)
         this.winSlots = [12, 22, 32];
-      if ((this.slots[0][2] + this.slots[1][2] + this.slots[2][2]) === 2)
+      if ((this.slots[2] + this.slots[5] + this.slots[8]) === 2)
         this.winSlots = [13, 23, 33];
-      if ((this.slots[0][0] + this.slots[1][1] + this.slots[2][2]) === 2)
+      if ((this.slots[0] + this.slots[4] + this.slots[8]) === 2)
         this.winSlots = [11, 22, 33];
-      if ((this.slots[0][2] + this.slots[1][1] + this.slots[2][0]) === 2)
+      if ((this.slots[2] + this.slots[4] + this.slots[6]) === 2)
         this.winSlots = [13, 22, 31];
      }
     if (currentXor0 === this.SLOTX) {
-      if ((this.slots[0][0] + this.slots[0][1] + this.slots[0][2]) === 10)
+      if ((this.slots[0] + this.slots[1] + this.slots[2]) === 10)
         this.winSlots = [11, 12, 13];
-      if ((this.slots[1][0] + this.slots[1][1] + this.slots[1][2]) === 10)
+      if ((this.slots[3] + this.slots[4] + this.slots[5]) === 10)
         this.winSlots = [21, 22, 23];
-      if ((this.slots[2][0] + this.slots[2][1] + this.slots[2][2]) === 10)
+      if ((this.slots[6] + this.slots[7] + this.slots[8]) === 10)
         this.winSlots = [31, 32, 33];
-      if ((this.slots[0][0] + this.slots[1][0] + this.slots[2][0]) === 10)
+      if ((this.slots[0] + this.slots[3] + this.slots[6]) === 10)
         this.winSlots = [11, 21, 31];
-      if ((this.slots[0][1] + this.slots[1][1] + this.slots[2][1]) === 10)
+      if ((this.slots[1] + this.slots[4] + this.slots[7]) === 10)
         this.winSlots = [12, 22, 32];
-      if ((this.slots[0][2] + this.slots[1][2] + this.slots[2][2]) === 10)
+      if ((this.slots[2] + this.slots[5] + this.slots[8]) === 10)
         this.winSlots = [13, 23, 33];
-      if ((this.slots[0][0] + this.slots[1][1] + this.slots[2][2]) === 10)
+      if ((this.slots[0] + this.slots[4] + this.slots[8]) === 10)
         this.winSlots = [11, 22, 33];
-      if ((this.slots[0][2] + this.slots[1][1] + this.slots[2][0]) === 10)
+      if ((this.slots[2] + this.slots[4] + this.slots[6]) === 10)
         this.winSlots = [13, 22, 31];
     }
     if (this.winSlots.length > 0) {
@@ -308,9 +312,9 @@ class TicTacToe {
       var slot;
       for (var index=0; index < this.winSlots.length; index++) {
         var slot = this.winSlots[index];
-        var x = (Number.parseInt(slot / 10)) -1;
-        var y = (slot % 10) -1;
-        if (this.slots[x][y] == this.SLOT_)
+        var y = (Number.parseInt(slot / 10)) -1;
+        var x = (slot % 10) -1;
+        if (this.slots[y*3 + x] == this.SLOT_)
           break;
       }
       this.winSlots = [ slot ];
@@ -326,13 +330,13 @@ class TicTacToe {
       return 0;
 
     // first check if there is a must block
-    if (this.mustBlock(currentXor0))
+    if (this.canWin(currentXor0))
       return ttt.winSlots[0];
 
     // ok, not random, just first open slot
     for (var x=0; x<3; x++) {
       for (var y=0; y<3; y++) {
-        if (ttt.slots[x][y] == this.SLOT_) {
+        if (ttt.slots[y*3 + x] == this.SLOT_) {
           var slot = (x+1)*10 + (y+1);
           return slot;
         }
@@ -348,7 +352,7 @@ class TicTacToe {
       return 0;
 
     // first check if there is a must block
-    if (this.mustBlock(currentXor0))
+    if (this.canWin(currentXor0))
       return ttt.winSlots[0];
 /*
     // ok, not random, just first open slot
