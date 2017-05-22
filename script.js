@@ -4,6 +4,7 @@
 //
 var givenUseX = true;
 var useX      = true;
+var order     = true;
 var players   = 1;
 var auto      = true;
 
@@ -50,6 +51,23 @@ function setX(value) {
   styleButtons("#b1", "#b2", useX);
 }
 
+function setOrder(value) {
+  order = value;
+  styleButtons("#b9", "#b10", order);
+
+  // TODO: if 1 player + !order + no moves => kick off epert move
+  if (players === 1 && !order && auto && ttt.moves.length == 0) {
+    var playerXor0 = (useX ? ttt.SLOTX : ttt.SLOT0);
+    if (auto)
+      slot = expertPlayer.move(ttt, playerXor0);
+    else
+      slot = simplePlayer.move(ttt, playerXor0);
+    useX = !useX;
+    setCell(slot);
+  }
+
+}
+
 function setPlayers(value) {
   players = value;
   styleButtons("#b3", "#b4", (players == 1));
@@ -57,11 +75,17 @@ function setPlayers(value) {
     $("#l3").show();
     $("#b5").show();
     $("#b6").show();
+    $("#l5").show();
+    $("#b9").show();
+    $("#b10").show();
   } else {
     // 2 player needs to hid auto
     $("#l3").hide();
     $("#b5").hide();
     $("#b6").hide();
+    $("#l5").hide();
+    $("#b9").hide();
+    $("#b10").hide();
   }
 }
 
@@ -115,6 +139,7 @@ function setCell(slot) {
 }
 
 $(document).ready(function() {
+  $(".testing").hide();
   ttt = new TicTacToe();
   simplePlayer = new SimplePlayer();
   expertPlayer = new ExpertPlayer();
@@ -123,6 +148,10 @@ $(document).ready(function() {
   $("#b1").click(function() { setX(true); });
   $("#b2").click(function() { setX(false); });
   setX(useX);
+
+  $("#b9").click(function() { setOrder(true); });
+  $("#b10").click(function() { setOrder(false); });
+  setOrder(order);
 
   $("#b3").click(function() { setPlayers(1); });
   $("#b4").click(function() { setPlayers(2); });
@@ -164,7 +193,9 @@ $(document).ready(function() {
   });
 });
 
+//
 // MODEL - TicTacToe
+//
 class TicTacToe {
   constructor() {
     // slot values weighted for fast win determination
