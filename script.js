@@ -23,7 +23,7 @@ function styleButtons(b1, b2, state) {
 
 function styleWin() {
   for (var slot=0; slot<ttt.winSlots.length; slot++) {
-    id = "#val" + ttt.winSlots[slot];
+    id = "#v" + ttt.winSlots[slot];
     $(id).addClass("won");
   }
   if (gameState === ttt.WINX)
@@ -35,15 +35,7 @@ function styleWin() {
 }
 
 function styleDraw() {
-  $("#val11").addClass("draw");
-  $("#val12").addClass("draw");
-  $("#val13").addClass("draw");
-  $("#val21").addClass("draw");
-  $("#val22").addClass("draw");
-  $("#val23").addClass("draw");
-  $("#val31").addClass("draw");
-  $("#val32").addClass("draw");
-  $("#val33").addClass("draw");
+  $(".val").addClass("draw");
   $("#status").text("draw :(");
   $("#status").addClass("draw");
 }
@@ -75,15 +67,7 @@ function setAuto(value) {
 }
 
 function clearBoard() {
-  $("#val11").text("_");
-  $("#val12").text("_");
-  $("#val13").text("_");
-  $("#val21").text("_");
-  $("#val22").text("_");
-  $("#val23").text("_");
-  $("#val31").text("_");
-  $("#val32").text("_");
-  $("#val33").text("_");
+  $(".val").text("_");
   $("span").removeClass("won");
   $("span").removeClass("draw");
   $("#status").text("game in progess...");
@@ -97,12 +81,12 @@ function clearBoard() {
 function setCell(slot) {
   if (gameState !== ttt.INPLAY)
     return;
-  if (slot === 0) {
+  if (slot < 0) {
     useX = !useX;
     return;
   }
 
-  var id = "#val" + slot;
+  var id = "#v" + slot;
 
   if (useX) {
     $(id).text("X");
@@ -146,15 +130,16 @@ $(document).ready(function() {
   $(".cell").click(function(e) {
     // e.target.id could be cellNN or valNN, get NN
     var slot;
-    slot = e.target.id.replace("cell", "").replace("val", "");
+    console.log(e.target.id);
+    slot = e.target.id.replace("c", "").replace("v", "");
     slot = Number.parseInt(slot);
     setCell(slot);
 
     if (players === 1) {
       if (auto)
-        slot = ttt.autoMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
+        slot = ttt.expertOpponentMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
       else
-        slot = ttt.randomMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
+        slot = ttt.simpleOpponentMove( (useX ? ttt.SLOTX : ttt.SLOT0) );
       setCell(slot);
     }
 
@@ -197,13 +182,8 @@ class TicTacToe {
 
   // process a move
   move(who, slot) {
-    var y = (Number.parseInt(slot / 10)) -1;
-    var x = (slot % 10) -1;
     console.log(slot);
-    console.log(x);
-    console.log(y);
-    console.log(y*3 + x);
-    this.slots[y*3 + x] = who;
+    this.slots[slot] = who;
     this.moves++;
   }
 
@@ -213,52 +193,50 @@ class TicTacToe {
     if (result === this.INPLAY) {
       this.winSlots = [];
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 3)
-        this.winSlots = [11, 12, 13];
+        this.winSlots = [0, 1, 2];
       if ((this.slots[3] + this.slots[4] + this.slots[5]) === 3)
-        this.winSlots = [21, 22, 23];
+        this.winSlots = [3, 4, 5];
       if ((this.slots[6] + this.slots[7] + this.slots[8]) === 3)
-        this.winSlots = [31, 32, 33];
+        this.winSlots = [6, 7, 8];
       if ((this.slots[0] + this.slots[3] + this.slots[6]) === 3)
-        this.winSlots = [11, 21, 31];
+        this.winSlots = [0, 3, 6];
       if ((this.slots[1] + this.slots[4] + this.slots[7]) === 3)
-        this.winSlots = [12, 22, 32];
+        this.winSlots = [1, 4, 7];
       if ((this.slots[2] + this.slots[5] + this.slots[8]) === 3)
-        this.winSlots = [13, 23, 33];
+        this.winSlots = [2, 5, 8];
       if ((this.slots[0] + this.slots[4] + this.slots[8]) === 3)
-        this.winSlots = [11, 22, 33];
+        this.winSlots = [0, 4, 8];
       if ((this.slots[2] + this.slots[4] + this.slots[6]) === 3)
-        this.winSlots = [13, 22, 31];
+        this.winSlots = [2, 4, 6];
       if (this.winSlots.length > 0)
         result = this.WINX;
     }
     if (result === this.INPLAY) {
       this.winSlots = [];
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 15)
-        this.winSlots = [11, 12, 13];
+        this.winSlots = [0, 1, 2];
       if ((this.slots[3] + this.slots[4] + this.slots[5]) === 15)
-        this.winSlots = [21, 22, 23];
+        this.winSlots = [3, 4, 5];
       if ((this.slots[6] + this.slots[7] + this.slots[8]) === 15)
-        this.winSlots = [31, 32, 33];
+        this.winSlots = [6, 7, 8];
       if ((this.slots[0] + this.slots[3] + this.slots[6]) === 15)
-        this.winSlots = [11, 21, 31];
+        this.winSlots = [0, 3, 6];
       if ((this.slots[1] + this.slots[4] + this.slots[7]) === 15)
-        this.winSlots = [12, 22, 32];
+        this.winSlots = [1, 4, 7];
       if ((this.slots[2] + this.slots[5] + this.slots[8]) === 15)
-        this.winSlots = [13, 23, 33];
+        this.winSlots = [2, 5, 8];
       if ((this.slots[0] + this.slots[4] + this.slots[8]) === 15)
-        this.winSlots = [11, 22, 33];
+        this.winSlots = [0, 4, 8];
       if ((this.slots[2] + this.slots[4] + this.slots[6]) === 15)
-        this.winSlots = [13, 22, 31];
+        this.winSlots = [2, 4, 6];
       if (this.winSlots.length > 0)
         result = this.WIN0;
     }
     if (result === this.INPLAY) {
       var done = true;
-      for (var x=0; x<3; x++) {
-        for (var y=0; y<3; y++) {
-          if (this.slots[y*3 + x] === this.SLOT_)
-            done = false;
-        }
+      for (var slot=0; slot<9; slot++) {
+        if (this.slots[slot] === this.SLOT_)
+          done = false;
       }
       if (done)
         result = this.DRAW;
@@ -273,48 +251,46 @@ class TicTacToe {
     if (currentXor0 === this.SLOT0) {
       // if we are currently 0, check for any near wins of X
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 2)
-        this.winSlots = [11, 12, 13];
+        this.winSlots = [0, 1, 2];
       if ((this.slots[3] + this.slots[4] + this.slots[5]) === 2)
-        this.winSlots = [21, 22, 23];
+        this.winSlots = [3, 4, 5];
       if ((this.slots[6] + this.slots[7] + this.slots[8]) === 2)
-        this.winSlots = [31, 32, 33];
+        this.winSlots = [6, 7, 8];
       if ((this.slots[0] + this.slots[3] + this.slots[6]) === 2)
-        this.winSlots = [11, 21, 31];
+        this.winSlots = [0, 3, 6];
       if ((this.slots[1] + this.slots[4] + this.slots[7]) === 2)
-        this.winSlots = [12, 22, 32];
+        this.winSlots = [1, 4, 7];
       if ((this.slots[2] + this.slots[5] + this.slots[8]) === 2)
-        this.winSlots = [13, 23, 33];
+        this.winSlots = [2, 5, 8];
       if ((this.slots[0] + this.slots[4] + this.slots[8]) === 2)
-        this.winSlots = [11, 22, 33];
+        this.winSlots = [0, 4, 8];
       if ((this.slots[2] + this.slots[4] + this.slots[6]) === 2)
-        this.winSlots = [13, 22, 31];
+        this.winSlots = [2, 4, 6];
      }
     if (currentXor0 === this.SLOTX) {
       if ((this.slots[0] + this.slots[1] + this.slots[2]) === 10)
-        this.winSlots = [11, 12, 13];
+        this.winSlots = [0, 1, 2];
       if ((this.slots[3] + this.slots[4] + this.slots[5]) === 10)
-        this.winSlots = [21, 22, 23];
+        this.winSlots = [3, 4, 5];
       if ((this.slots[6] + this.slots[7] + this.slots[8]) === 10)
-        this.winSlots = [31, 32, 33];
+        this.winSlots = [6, 7, 8];
       if ((this.slots[0] + this.slots[3] + this.slots[6]) === 10)
-        this.winSlots = [11, 21, 31];
+        this.winSlots = [0, 3, 6];
       if ((this.slots[1] + this.slots[4] + this.slots[7]) === 10)
-        this.winSlots = [12, 22, 32];
+        this.winSlots = [1, 4, 7];
       if ((this.slots[2] + this.slots[5] + this.slots[8]) === 10)
-        this.winSlots = [13, 23, 33];
+        this.winSlots = [2, 5, 8];
       if ((this.slots[0] + this.slots[4] + this.slots[8]) === 10)
-        this.winSlots = [11, 22, 33];
+        this.winSlots = [0, 4, 8];
       if ((this.slots[2] + this.slots[4] + this.slots[6]) === 10)
-        this.winSlots = [13, 22, 31];
+        this.winSlots = [2, 4, 6];
     }
     if (this.winSlots.length > 0) {
       // find to the one empty slot
       var slot;
       for (var index=0; index < this.winSlots.length; index++) {
         var slot = this.winSlots[index];
-        var y = (Number.parseInt(slot / 10)) -1;
-        var x = (slot % 10) -1;
-        if (this.slots[y*3 + x] == this.SLOT_)
+        if (this.slots[slot] == this.SLOT_)
           break;
       }
       this.winSlots = [ slot ];
@@ -325,7 +301,7 @@ class TicTacToe {
   }
 
   // NOTE: this could be another class, randomPlayer
-  randomMove(currentXor0) {
+  simpleOpponentMove(currentXor0) {
     if (this.check() !== this.INPLAY)
       return 0;
 
@@ -334,12 +310,9 @@ class TicTacToe {
       return ttt.winSlots[0];
 
     // ok, not random, just first open slot
-    for (var x=0; x<3; x++) {
-      for (var y=0; y<3; y++) {
-        if (ttt.slots[y*3 + x] == this.SLOT_) {
-          var slot = (x+1)*10 + (y+1);
-          return slot;
-        }
+    for (var slot=0; slot<9; slot++) {
+      if (ttt.slots[slot] == this.SLOT_) {
+        return slot;
       }
     }
     return 0;
@@ -347,7 +320,7 @@ class TicTacToe {
 
 
   // NOTE: this could be another class, autoPlayer
-  autoMove(currentXor0) {
+  expertOpponentMove(currentXor0) {
     if (this.check() !== this.INPLAY)
       return 0;
 
