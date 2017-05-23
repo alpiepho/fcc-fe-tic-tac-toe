@@ -147,6 +147,7 @@ function runTests() {
   var tester = new TestExpert(ttt, expertPlayer, userXor0, playerXor0);
   var state = ttt.saveState();
 
+
   // CASE SET 1 - expert goes first
   // simplified because expert always starts with slot 0
   for (userSlot = 1; userSlot<9; userSlot++) {
@@ -161,9 +162,12 @@ function runTests() {
       break;
   }
 
+  /*
+  */
   // CASE SET 2 - expert goes second
-  // simplified because expert always starts with slot 0
-  for (userSlot = 1; userSlot<9; userSlot++) {
+  ttt.loadState(state);
+  expertPlayer.weStarted = false;
+  for (userSlot = 0; userSlot<3; userSlot++) {
     $("#tstat").text("CASE: expert second, user " + userSlot + "...");
     console.log("CASE: expert second, user " + userSlot + "...");
     ttt.loadState(state);
@@ -455,6 +459,10 @@ class ExpertPlayer {
 
     // check if there is a must block
     var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
+    //console.log("AAA " + userXor0);
+    //console.log("AAA " + model.canWin(userXor0));
+    //console.log("AAA " + model.slots);
+    //console.log("AAA " + model.winSlots[0]);
     if (model.canWin(userXor0))
       return model.winSlots[0];
 
@@ -464,18 +472,30 @@ class ExpertPlayer {
       return 0;
     }
     // if we started and user took middle
-    if (this.weStarted && !model.isOpen(4)) {
-      // pick another corner
-      if (model.isOpen(2))
+    if (this.weStarted) {
+      // if second player and our first pick, take center
+      if (model.moves.length == 9 && model.isOpen(0))
+        return 0;
+      // pick another "open" corner
+      else if (model.isOpen(2) && (model.isOpen(1) && model.isOpen(5)))
         return 2;
-      else if (model.isOpen(6))
+      else if (model.isOpen(6) && (model.isOpen(3) && model.isOpen(7)))
         return 6;
-      else if (model.isOpen(8))
+      else if (model.isOpen(8) && (model.isOpen(7) && model.isOpen(5)))
         return 8;
     } else {
-      // try middle
-      if (model.isOpen(4))
+      // if second player and our first pick, take center
+      if (model.moves.length == 1 && model.isOpen(4))
         return 4;
+      // try a "adjacent" corner (ie. not alone)
+      else if (model.isOpen(0) && (!model.isOpen(1) || !model.isOpen(3)))
+        return 0;
+      else if (model.isOpen(2) && (!model.isOpen(1) || !model.isOpen(5)))
+        return 2;
+      else if (model.isOpen(6) && (!model.isOpen(3) || !model.isOpen(7)))
+        return 6;
+      else if (model.isOpen(8) && (!model.isOpen(7) || !model.isOpen(5)))
+        return 8;
     }
     // no rules applied, so just take first open
     return model.firstOpen();
@@ -497,6 +517,11 @@ class TestExpert {
   test(level, userSlot) {
     var gameState;
 
+    // stop on first failure
+    // TODO: make this a configuration
+    if (this.fails > 0)
+      return;
+
     // just incase
     if (userSlot < 0) {
       console.log(level + ": ERROR: userSlot < 0");
@@ -506,6 +531,7 @@ class TestExpert {
     // update user move
     console.log(level + ": user: " + userSlot);
     this.model.move(this.userXor0, userSlot);
+    console.log(this.model.slots);
     console.log(this.model.moves);
 
     // check if done after user move
@@ -536,6 +562,7 @@ class TestExpert {
       console.log(level + ": ERROR: playerSlot < 0");
     }
     this.model.move(this.playerXor0, playerSlot);
+    console.log(this.model.slots);
     console.log(this.model.moves);
 
     // check if done after expert player move
@@ -563,7 +590,7 @@ class TestExpert {
     var allSlots = this.model.slots.slice(0);
     for (var slot=0; slot<allSlots.length; slot++) {
       this.model.loadState(state);
-      if (allSlots[slot] == this.model.SLOT_) {
+      if (allSlots[slot] == this.model.SLOT_ && this.fails === 0) {
         console.log(level + ": recurse-start: " + slot);
         this.test(level+1, slot);
         console.log(level + ": recurse-end: " + slot);
@@ -571,7 +598,7 @@ class TestExpert {
   }
 
     var gameState = this.model.check();
-    if (gameState !== this.model.INPLAY) {
+    if (gameState !== this.model.INPLAY && this.fails === 0) {
       this.finished++;
       if ((gameState === this.model.WINX &&
           this.playerXor0 === this.model.SLOT0) ||
