@@ -14,7 +14,7 @@ var gameState;
 var simplePlayer;
 var expertPlayer;
 
-var tests;
+var tester;
 
 function styleButtons(b1, b2, state) {
   $(b1).removeClass("b-on");
@@ -139,35 +139,52 @@ function setCell(slot) {
 }
 
 $(document).ready(function() {
-  $(".testing").hide();
+  //$(".testing").hide();
+
+  // allocate class instances
   ttt = new TicTacToe();
   simplePlayer = new SimplePlayer();
   expertPlayer = new ExpertPlayer();
+
+  // clear the board
   clearBoard();
 
+  // clokc handlers for X_or_0
   $("#b1").click(function() { setX(true); });
   $("#b2").click(function() { setX(false); });
   setX(useX);
 
+  // click handlers for 1st or 2nd
   $("#b9").click(function() { setOrder(true); });
   $("#b10").click(function() { setOrder(false); });
   setOrder(order);
 
+  // click handlers for 1 or 2 players
   $("#b3").click(function() { setPlayers(1); });
   $("#b4").click(function() { setPlayers(2); });
   setPlayers(players);
 
+  // click handlers for simple or expert auto player
+  // TODO: rename
   $("#b5").click(function() { setAuto(true); });
   $("#b6").click(function() { setAuto(false); });
   setAuto(auto);
 
+  // click handler for clearing board
   $("#b7").click(function() { clearBoard(); });
 
+  // click handler for test
   $("#b8").click(function() {
+    var userXor0   = (useX ? ttt.SLOTX : ttt.SLOT0);
     var playerXor0 = (useX ? ttt.SLOT0 : ttt.SLOTX);
-    var tester = new TestExpert(ttt, expertPlayer, playerXor0);
-    $("#tstat").text("test auto first...");
-    if (tester.testExpertFirst(3))
+    var tester = new TestExpert(ttt, expertPlayer, userXor0, playerXor0);
+
+    $("#tstat").text("test expert first...");
+    // expert goes first
+    var playerSlot = expertPlayer.move(ttt, playerXor0);
+    ttt.move(playerXor0, playerSlot);
+    // call recursive test with user starting in middle
+    if (tester.test(4))
       $("#tstat").text("PASSED").addClass("passed");
     else
       $("#tstat").text("FAILED").addClass("failed");
@@ -213,8 +230,22 @@ class TicTacToe {
     this.init();
   }
 
+  saveState () {
+    var state = {};
+    state.slots    = this.slots;
+    state.moves    = this.moves;
+    state.winSlots = this.winSlots;
+    return state;
+  }
+
+  loadState (state) {
+    this.slots    = state.slots;
+    this.moves    = state.moves;
+    this.winSlots = state.winSlots;
+  }
+
   // iniialize the board
-  init () {
+  init() {
     this.slots = [
       this.SLOT_,this.SLOT_,this.SLOT_,
       this.SLOT_,this.SLOT_,this.SLOT_,
@@ -228,6 +259,7 @@ class TicTacToe {
   move(who, slot) {
     this.slots[slot] = who;
     this.moves.push(slot);
+    console.log(this.moves);
   }
 
   // get first open slot
@@ -421,17 +453,39 @@ class ExpertPlayer {
 
 // TESTER
 class TestExpert {
-  constructor(model, player, playerXor0) {
+  constructor(model, player, userXor0, playerXor0) {
     this.model      = model;
     this.player     = player;
+    this.userXor0   = userXor0;
     this.playerXor0 = playerXor0;
   }
-  testExpertFirst(userXor0) {
+  test(userSlot) {
     var result = true;
 
+    console.log("gameState: " + this.model.check());
+    if (this.model.check() !== this.model.INPLAY)
+      return false;
+    if (userSlot < 0)
+      return false;
+
+    // update user move
+    this.model.move(this.userXor0, userSlot);
+
+    // update the expert move
     var playerSlot = this.player.move(this.model, this.playerXor0);
     this.model.move(this.playerXor0, playerSlot);
     console.log(playerSlot);
+
+    // cycle thru all the remaining user moves, issue move and recurse
+    var state = this.model.saveState();
+    for (var index=0; index<this.model.slots.length; index++) {
+      this.model.loadState(state);
+      var userSlot = this.model.slots[index];
+      if (userSlot == this.model.SLOT_)
+        this.test(userSlot);
+    }
+
+    // check that user didn't win
 
     return result;
   }
