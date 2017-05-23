@@ -138,6 +138,49 @@ function setCell(slot) {
   useX = !useX;
 }
 
+// run tests
+function runTests() {
+  var userXor0   = (useX ? ttt.SLOTX : ttt.SLOT0);
+  var playerXor0 = (useX ? ttt.SLOT0 : ttt.SLOTX);
+  var userSlot;
+  var playerSlot;
+  var tester = new TestExpert(ttt, expertPlayer, userXor0, playerXor0);
+  var state = ttt.saveState();
+
+  // CASE SET 1 - expert goes first
+  // simplified because expert always starts with slot 0
+  for (userSlot = 1; userSlot<9; userSlot++) {
+    $("#tstat").text("CASE: expert first, user " + userSlot + "...");
+    console.log("CASE: expert first, user " + userSlot + "...");
+    ttt.loadState(state);
+    playerSlot = expertPlayer.move(ttt, playerXor0);
+    ttt.move(playerXor0, playerSlot);
+    // call recursive test with user starting in middle
+    tester.test(0, userSlot);
+    if (tester.fails > 0)
+      break;
+  }
+
+  // CASE SET 2 - expert goes second
+  // simplified because expert always starts with slot 0
+  for (userSlot = 1; userSlot<9; userSlot++) {
+    $("#tstat").text("CASE: expert second, user " + userSlot + "...");
+    console.log("CASE: expert second, user " + userSlot + "...");
+    ttt.loadState(state);
+    // call recursive test with user starting in middle
+    tester.test(0, userSlot);
+    if (tester.fails > 0)
+      break;
+  }
+
+  // check if all passed
+  if (tester.fails === 0)
+    $("#tstat").text("PASSED").addClass("passed");
+  else
+    $("#tstat").text("FAILED (see console)").addClass("failed");
+}
+
+// DOCUEMENT READY - hook up things
 $(document).ready(function() {
   //$(".testing").hide();
 
@@ -175,20 +218,7 @@ $(document).ready(function() {
 
   // click handler for test
   $("#b8").click(function() {
-    var userXor0   = (useX ? ttt.SLOTX : ttt.SLOT0);
-    var playerXor0 = (useX ? ttt.SLOT0 : ttt.SLOTX);
-    var tester = new TestExpert(ttt, expertPlayer, userXor0, playerXor0);
-
-    $("#tstat").text("test expert first...");
-    // expert goes first
-    var playerSlot = expertPlayer.move(ttt, playerXor0);
-    ttt.move(playerXor0, playerSlot);
-    // call recursive test with user starting in middle
-    tester.test(0, 4);
-    if (tester.fails === 0)
-      $("#tstat").text("PASSED (see console)").addClass("passed");
-    else
-      $("#tstat").text("FAILED " + tester.fails + " times (see console)").addClass("failed");
+    runTests();
   });
 
   $(".cell").click(function(e) {
@@ -388,7 +418,9 @@ class TicTacToe {
   }
 } // class TicTacToe
 
+//
 // MODEL - SimplePlayer
+//
 class SimplePlayer {
   move(model, currentXor0) {
     if (model.check() !== model.INPLAY)
@@ -404,7 +436,9 @@ class SimplePlayer {
   }
 } // class SimplePlayer
 
+//
 // MODEL - ExpertPlayer
+//
 class ExpertPlayer {
   constructor() {
     this.weStarted = false;
@@ -416,21 +450,11 @@ class ExpertPlayer {
     // TODO: need to complete resursive tests to verify algorithm
 
     // check if expert can win
-    console.log("AAAA");
-    console.log(userXor0);
-    console.log(model.canWin(currentXor0));
-    console.log(model.winSlots);
-    console.log("AAAA");
     if (model.canWin(currentXor0))
       return model.winSlots[0];
 
     // check if there is a must block
     var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
-    console.log("BBBB");
-    console.log(userXor0);
-    console.log(model.canWin(userXor0));
-    console.log(model.winSlots);
-    console.log("BBBB");
     if (model.canWin(userXor0))
       return model.winSlots[0];
 
@@ -458,10 +482,9 @@ class ExpertPlayer {
   }
 } // class ExpertPlayer
 
-
-
-
+//
 // TESTER
+//
 class TestExpert {
   constructor(model, player, userXor0, playerXor0) {
     this.model      = model;
@@ -472,6 +495,8 @@ class TestExpert {
     this.fails      = 0;
   }
   test(level, userSlot) {
+    var gameState;
+
     // just incase
     if (userSlot < 0) {
       console.log(level + ": ERROR: userSlot < 0");
@@ -483,6 +508,26 @@ class TestExpert {
     this.model.move(this.userXor0, userSlot);
     console.log(this.model.moves);
 
+    // check if done after user move
+    gameState = this.model.check();
+    if (gameState !== this.model.INPLAY) {
+      this.finished++;
+      if ((gameState === this.model.WINX &&
+          this.playerXor0 === this.model.SLOT0) ||
+          (gameState === this.model.WIN0&&
+              this.playerXor0 === this.model.SLOTX))
+       {
+        this.fails++;
+        console.log(level + ": FAIL:");
+        console.log(this.model.moves);
+      }
+      console.log(level + ": exit-after-user");
+      console.log(level + ": gameState: " + gameState);
+      console.log(level + ": finished : " + this.finished);
+      console.log(level + ": fails    : " + this.fails);
+      return;
+    }
+
     // update the expert move
     var playerSlot = this.player.move(this.model, this.playerXor0);
     console.log(level + ": player: " + playerSlot);
@@ -492,6 +537,26 @@ class TestExpert {
     }
     this.model.move(this.playerXor0, playerSlot);
     console.log(this.model.moves);
+
+    // check if done after expert player move
+    gameState = this.model.check();
+    if (gameState !== this.model.INPLAY) {
+      this.finished++;
+      if ((gameState === this.model.WINX &&
+          this.playerXor0 === this.model.SLOT0) ||
+          (gameState === this.model.WIN0&&
+              this.playerXor0 === this.model.SLOTX))
+       {
+        this.fails++;
+        console.log(level + ": FAIL:");
+        console.log(this.model.moves);
+      }
+      console.log(level + ": exit-after-player");
+      console.log(level + ": gameState: " + gameState);
+      console.log(level + ": finished : " + this.finished);
+      console.log(level + ": fails    : " + this.fails);
+      return;
+    }
 
     // cycle thru all the remaining user moves, issue move and recurse
     var state = this.model.saveState();
@@ -517,7 +582,7 @@ class TestExpert {
         console.log(level + ": FAIL:");
         console.log(this.model.moves);
       }
-      console.log(level + ": normal exit");
+      console.log(level + ": exit-end");
     }
     console.log(level + ": gameState: " + gameState);
     console.log(level + ": finished : " + this.finished);
