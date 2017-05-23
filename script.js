@@ -158,7 +158,7 @@ function runTests() {
     ttt.move(playerXor0, playerSlot);
     // call recursive test with user starting in middle
     tester.test(0, userSlot);
-    if (tester.fails > 0)
+    if (tester.stopOnFail && tester.fails > 0)
       break;
   }
 
@@ -167,13 +167,13 @@ function runTests() {
   // CASE SET 2 - expert goes second
   ttt.loadState(state);
   expertPlayer.weStarted = false;
-  for (userSlot = 0; userSlot<3; userSlot++) {
+  for (userSlot = 0; userSlot<9; userSlot++) {
     $("#tstat").text("CASE: expert second, user " + userSlot + "...");
     console.log("CASE: expert second, user " + userSlot + "...");
     ttt.loadState(state);
     // call recursive test with user starting in middle
     tester.test(0, userSlot);
-    if (tester.fails > 0)
+    if (tester.stopOnFail && tester.fails > 0)
       break;
   }
 
@@ -487,17 +487,42 @@ class ExpertPlayer {
       // if second player and our first pick, take center
       if (model.moves.length == 1 && model.isOpen(4))
         return 4;
-      // try a "adjacent" corner (ie. not alone)
-      else if (model.isOpen(0) && (!model.isOpen(1) || !model.isOpen(3)))
-        return 0;
-      else if (model.isOpen(2) && (!model.isOpen(1) || !model.isOpen(5)))
-        return 2;
-      else if (model.isOpen(6) && (!model.isOpen(3) || !model.isOpen(7)))
-        return 6;
-      else if (model.isOpen(8) && (!model.isOpen(7) || !model.isOpen(5)))
-        return 8;
+        // try a "adjacent" corner (ie. not alone)
+        else if (model.isOpen(0) && (!model.isOpen(1) || !model.isOpen(3)))
+          return 0;
+        else if (model.isOpen(2) && (!model.isOpen(1) || !model.isOpen(5)))
+          return 2;
+        else if (model.isOpen(6) && (!model.isOpen(3) || !model.isOpen(7)))
+          return 6;
+        else if (model.isOpen(8) && (!model.isOpen(7) || !model.isOpen(5)))
+          return 8;
+
+/*
+        // try a fully open corner
+        else if (model.isOpen(0) && (model.isOpen(1) && model.isOpen(3)))
+          return 0;
+        else if (model.isOpen(2) && (model.isOpen(1) && model.isOpen(5)))
+          return 2;
+        else if (model.isOpen(6) && (model.isOpen(3) && model.isOpen(7)))
+          return 6;
+        else if (model.isOpen(8) && (model.isOpen(7) && model.isOpen(5)))
+          return 8;
+*/
+
+        // try a "adjacent" side (ie. not alone)
+        else if (model.isOpen(1) && (!model.isOpen(0) || !model.isOpen(2)))
+          return 1;
+        else if (model.isOpen(5) && (!model.isOpen(2) || !model.isOpen(8)))
+          return 5;
+        else if (model.isOpen(7) && (!model.isOpen(6) || !model.isOpen(8)))
+          return 7;
+        else if (model.isOpen(3) && (!model.isOpen(0) || !model.isOpen(6)))
+          return 3;
+        /*
+        */
     }
     // no rules applied, so just take first open
+    console.log("firstOpen");
     return model.firstOpen();
   }
 } // class ExpertPlayer
@@ -513,13 +538,19 @@ class TestExpert {
     this.playerXor0 = playerXor0;
     this.finished   = 0;
     this.fails      = 0;
+    this.stopOnFail = 1;
   }
+
+  // HACK: allow overriding fails
+  updateFails() {
+    this.fails++;
+  }
+
   test(level, userSlot) {
     var gameState;
 
     // stop on first failure
-    // TODO: make this a configuration
-    if (this.fails > 0)
+    if (this.stopOnFail && this.fails > 0)
       return;
 
     // just incase
@@ -542,8 +573,8 @@ class TestExpert {
           this.playerXor0 === this.model.SLOT0) ||
           (gameState === this.model.WIN0&&
               this.playerXor0 === this.model.SLOTX))
-       {
-        this.fails++;
+      {
+        this.updateFails();
         console.log(level + ": FAIL:");
         console.log(this.model.moves);
       }
@@ -574,7 +605,7 @@ class TestExpert {
           (gameState === this.model.WIN0&&
               this.playerXor0 === this.model.SLOTX))
        {
-        this.fails++;
+        this.updateFails();
         console.log(level + ": FAIL:");
         console.log(this.model.moves);
       }
@@ -590,7 +621,7 @@ class TestExpert {
     var allSlots = this.model.slots.slice(0);
     for (var slot=0; slot<allSlots.length; slot++) {
       this.model.loadState(state);
-      if (allSlots[slot] == this.model.SLOT_ && this.fails === 0) {
+      if (allSlots[slot] == this.model.SLOT_ && (this.stopOnFail=== 0 || this.fails === 0)) {
         console.log(level + ": recurse-start: " + slot);
         this.test(level+1, slot);
         console.log(level + ": recurse-end: " + slot);
@@ -598,14 +629,14 @@ class TestExpert {
   }
 
     var gameState = this.model.check();
-    if (gameState !== this.model.INPLAY && this.fails === 0) {
+    if (gameState !== this.model.INPLAY && (this.stopOnFail=== 0 || this.fails === 0)) {
       this.finished++;
       if ((gameState === this.model.WINX &&
           this.playerXor0 === this.model.SLOT0) ||
           (gameState === this.model.WIN0&&
               this.playerXor0 === this.model.SLOTX))
        {
-        this.fails++;
+        this.updateFails();
         console.log(level + ": FAIL:");
         console.log(this.model.moves);
       }
