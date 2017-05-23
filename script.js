@@ -184,9 +184,9 @@ $(document).ready(function() {
     var playerSlot = expertPlayer.move(ttt, playerXor0);
     ttt.move(playerXor0, playerSlot);
     // call recursive test with user starting in middle
-    tester.test(4);
+    tester.test(0, 4);
     if (tester.fails === 0)
-      $("#tstat").text("PASSED").addClass("passed");
+      $("#tstat").text("PASSED (see console)").addClass("passed");
     else
       $("#tstat").text("FAILED " + tester.fails + " times (see console)").addClass("failed");
   });
@@ -233,16 +233,16 @@ class TicTacToe {
 
   saveState () {
     var state = {};
-    state.slots    = this.slots;
-    state.moves    = this.moves;
-    state.winSlots = this.winSlots;
+    state.slots    = this.slots.slice(0);
+    state.moves    = this.moves.slice(0);
+    state.winSlots = this.winSlots.slice(0);
     return state;
   }
 
   loadState (state) {
-    this.slots    = state.slots;
-    this.moves    = state.moves;
-    this.winSlots = state.winSlots;
+    this.slots    = state.slots.slice(0);
+    this.moves    = state.moves.slice(0);
+    this.winSlots = state.winSlots.slice(0);
   }
 
   // iniialize the board
@@ -416,11 +416,21 @@ class ExpertPlayer {
     // TODO: need to complete resursive tests to verify algorithm
 
     // check if expert can win
+    console.log("AAAA");
+    console.log(userXor0);
+    console.log(model.canWin(currentXor0));
+    console.log(model.winSlots);
+    console.log("AAAA");
     if (model.canWin(currentXor0))
       return model.winSlots[0];
 
     // check if there is a must block
     var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
+    console.log("BBBB");
+    console.log(userXor0);
+    console.log(model.canWin(userXor0));
+    console.log(model.winSlots);
+    console.log("BBBB");
     if (model.canWin(userXor0))
       return model.winSlots[0];
 
@@ -458,46 +468,59 @@ class TestExpert {
     this.player     = player;
     this.userXor0   = userXor0;
     this.playerXor0 = playerXor0;
+    this.finished   = 0;
     this.fails      = 0;
   }
-  test(userSlot) {
+  test(level, userSlot) {
+    // just incase
+    if (userSlot < 0) {
+      console.log(level + ": ERROR: userSlot < 0");
+      return;
+    }
+
+    // update user move
+    console.log(level + ": user: " + userSlot);
+    this.model.move(this.userXor0, userSlot);
+    console.log(this.model.moves);
+
+    // update the expert move
+    var playerSlot = this.player.move(this.model, this.playerXor0);
+    console.log(level + ": player: " + playerSlot);
+    if (playerSlot < 0) {
+      // something wrong, bail
+      console.log(level + ": ERROR: playerSlot < 0");
+    }
+    this.model.move(this.playerXor0, playerSlot);
+    console.log(this.model.moves);
+
+    // cycle thru all the remaining user moves, issue move and recurse
+    var state = this.model.saveState();
+    var allSlots = this.model.slots.slice(0);
+    for (var slot=0; slot<allSlots.length; slot++) {
+      this.model.loadState(state);
+      if (allSlots[slot] == this.model.SLOT_) {
+        console.log(level + ": recurse-start: " + slot);
+        this.test(level+1, slot);
+        console.log(level + ": recurse-end: " + slot);
+      }
+  }
+
     var gameState = this.model.check();
-    console.log("gameState: " + gameState);
     if (gameState !== this.model.INPLAY) {
+      this.finished++;
       if ((gameState === this.model.WINX &&
           this.playerXor0 === this.model.SLOT0) ||
           (gameState === this.model.WIN0&&
               this.playerXor0 === this.model.SLOTX))
        {
         this.fails++;
-        console.log("FAIL:");
+        console.log(level + ": FAIL:");
         console.log(this.model.moves);
       }
-
-      return;
+      console.log(level + ": normal exit");
     }
-    if (userSlot < 0)
-      return;
-
-    // update user move
-    console.log("user: " + userSlot);
-    this.model.move(this.userXor0, userSlot);
-    console.log(this.model.moves);
-
-    // update the expert move
-    var playerSlot = this.player.move(this.model, this.playerXor0);
-    console.log("player: " + playerSlot);
-    this.model.move(this.playerXor0, playerSlot);
-    console.log(this.model.moves);
-
-    // cycle thru all the remaining user moves, issue move and recurse
-    var state = this.model.saveState();
-    for (var slot=0; slot<this.model.slots.length; slot++) {
-      this.model.loadState(state);
-      if (this.model.slots[slot] == this.model.SLOT_) {
-        console.log("recurse: " + slot);
-        this.test(slot);
-      }
-    }
+    console.log(level + ": gameState: " + gameState);
+    console.log(level + ": finished : " + this.finished);
+    console.log(level + ": fails    : " + this.fails);
   }
 } // class ExpertPlayer
