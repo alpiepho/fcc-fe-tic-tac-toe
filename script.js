@@ -184,10 +184,11 @@ $(document).ready(function() {
     var playerSlot = expertPlayer.move(ttt, playerXor0);
     ttt.move(playerXor0, playerSlot);
     // call recursive test with user starting in middle
-    if (tester.test(4))
+    tester.test(4);
+    if (tester.fails === 0)
       $("#tstat").text("PASSED").addClass("passed");
     else
-      $("#tstat").text("FAILED").addClass("failed");
+      $("#tstat").text("FAILED " + tester.fails + " times (see console)").addClass("failed");
   });
 
   $(".cell").click(function(e) {
@@ -259,7 +260,6 @@ class TicTacToe {
   move(who, slot) {
     this.slots[slot] = who;
     this.moves.push(slot);
-    console.log(this.moves);
   }
 
   // get first open slot
@@ -413,6 +413,8 @@ class ExpertPlayer {
     if (model.check() !== model.INPLAY)
       return -1;
 
+    // TODO: need to complete resursive tests to verify algorithm
+
     // check if expert can win
     if (model.canWin(currentXor0))
       return model.winSlots[0];
@@ -422,13 +424,11 @@ class ExpertPlayer {
     if (model.canWin(userXor0))
       return model.winSlots[0];
 
-    // TODO: add rules
     // if first move pick a corner
     if (model.moves.length === 0) {
       this.weStarted = true;
       return 0;
     }
-
     // if we started and user took middle
     if (this.weStarted && !model.isOpen(4)) {
       // pick another corner
@@ -458,35 +458,46 @@ class TestExpert {
     this.player     = player;
     this.userXor0   = userXor0;
     this.playerXor0 = playerXor0;
+    this.fails      = 0;
   }
   test(userSlot) {
-    var result = true;
+    var gameState = this.model.check();
+    console.log("gameState: " + gameState);
+    if (gameState !== this.model.INPLAY) {
+      if ((gameState === this.model.WINX &&
+          this.playerXor0 === this.model.SLOT0) ||
+          (gameState === this.model.WIN0&&
+              this.playerXor0 === this.model.SLOTX))
+       {
+        this.fails++;
+        console.log("FAIL:");
+        console.log(this.model.moves);
+      }
 
-    console.log("gameState: " + this.model.check());
-    if (this.model.check() !== this.model.INPLAY)
-      return false;
+      return;
+    }
     if (userSlot < 0)
-      return false;
+      return;
 
     // update user move
+    console.log("user: " + userSlot);
     this.model.move(this.userXor0, userSlot);
+    console.log(this.model.moves);
 
     // update the expert move
     var playerSlot = this.player.move(this.model, this.playerXor0);
+    console.log("player: " + playerSlot);
     this.model.move(this.playerXor0, playerSlot);
-    console.log(playerSlot);
+    console.log(this.model.moves);
 
     // cycle thru all the remaining user moves, issue move and recurse
     var state = this.model.saveState();
-    for (var index=0; index<this.model.slots.length; index++) {
+    for (var slot=0; slot<this.model.slots.length; slot++) {
       this.model.loadState(state);
-      var userSlot = this.model.slots[index];
-      if (userSlot == this.model.SLOT_)
-        this.test(userSlot);
+      if (this.model.slots[slot] == this.model.SLOT_) {
+        console.log("recurse: " + slot);
+        this.test(slot);
+      }
     }
-
-    // check that user didn't win
-
-    return result;
   }
 } // class ExpertPlayer
