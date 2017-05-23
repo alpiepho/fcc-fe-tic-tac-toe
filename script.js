@@ -1,4 +1,28 @@
 
+/*
+TODO: I think this is working, but not completely sure
+      about testing cases.
+
+      My testing covers 659 cases where the expert player
+      always wins or draws.  There is one corner case where
+      the expert (0) rules don't work when going 2nd:
+      0..
+      .X.
+      ..X
+
+      The rules would pick the upper middle.  I HACKED in
+      a rule to pick the upper right just for this case.
+
+      Another inconssistency is from https://www.jesperjuul.net/ludologist/2003/12/28/255168-ways-of-playing-tic-tac-toe/
+      where they show there are:
+      255,168 unique games
+      131,184 are won by the first player
+      77,904 are won by the second player
+      6,080 are draws
+
+      So my test case count seems REALLY low.
+*/
+
 //
 // CONTROLLER
 //
@@ -55,7 +79,7 @@ function setOrder(value) {
   order = value;
   styleButtons("#b9", "#b10", order);
 
-  // TODO: if 1 player + !order + no moves => kick off epert move
+  // TODO: if 1 player + !order + no moves => kick off expert move
   if (players === 1 && !order && auto && ttt.moves.length == 0) {
     var playerXor0 = (useX ? ttt.SLOTX : ttt.SLOT0);
     if (auto)
@@ -457,10 +481,6 @@ class ExpertPlayer {
 
     // check if there is a must block
     var userXor0 = (currentXor0 == model.SLOTX ? model.SLOT0 : model.SLOTX );
-    //console.log("AAA " + userXor0);
-    //console.log("AAA " + model.canWin(userXor0));
-    //console.log("AAA " + model.slots);
-    //console.log("AAA " + model.winSlots[0]);
     if (model.canWin(userXor0))
       return model.winSlots[0];
 
@@ -485,25 +505,56 @@ class ExpertPlayer {
       // if second player and our first pick, take center
       if (model.moves.length == 1 && model.isOpen(4))
         return 4;
-        // try a "adjacent" corner (ie. not alone)
-        else if (model.isOpen(0) && (!model.isOpen(1) || !model.isOpen(3)))
-          return 0;
-        else if (model.isOpen(2) && (!model.isOpen(1) || !model.isOpen(5)))
-          return 2;
-        else if (model.isOpen(6) && (!model.isOpen(3) || !model.isOpen(7)))
-          return 6;
-        else if (model.isOpen(8) && (!model.isOpen(7) || !model.isOpen(5)))
-          return 8;
+/*
+      // HACK: only case that test fails
+      // TODO: concerned that my tests are lacking.
+      // 0..
+      // .X.
+      // ..X
+      // we were picking slot 1
+      // 00.
+      // .X.
+      // ..X
+      // but need to pick a corner
+      // 0.0    0..
+      // .X. or .X.
+      // ..X    0.X
+      else if ((model.moves.length) === 3 &&
+               (model.moves[0]      === 4) &&
+               (model.moves[1]      === 0) &&
+               (model.moves[2]      === 8))
+        return 2;
+*/
+      // try a "adjacent" corner (ie. not alone)
+      else if (model.isOpen(0) && (!model.isOpen(1) || !model.isOpen(3)))
+        return 0;
+      else if (model.isOpen(2) && (!model.isOpen(1) || !model.isOpen(5)))
+        return 2;
+      else if (model.isOpen(6) && (!model.isOpen(3) || !model.isOpen(7)))
+        return 6;
+      else if (model.isOpen(8) && (!model.isOpen(7) || !model.isOpen(5)))
+        return 8;
 
-        // try a "adjacent" side (ie. not alone)
-        else if (model.isOpen(1) && (!model.isOpen(0) || !model.isOpen(2)))
-          return 1;
-        else if (model.isOpen(5) && (!model.isOpen(2) || !model.isOpen(8)))
-          return 5;
-        else if (model.isOpen(7) && (!model.isOpen(6) || !model.isOpen(8)))
-          return 7;
-        else if (model.isOpen(3) && (!model.isOpen(0) || !model.isOpen(6)))
-          return 3;
+      // try a "adjacent" side (ie. not alone)
+      else if (model.isOpen(1) && (!model.isOpen(0) || !model.isOpen(2)))
+        return 1;
+      else if (model.isOpen(5) && (!model.isOpen(2) || !model.isOpen(8)))
+        return 5;
+      else if (model.isOpen(7) && (!model.isOpen(6) || !model.isOpen(8)))
+        return 7;
+      else if (model.isOpen(3) && (!model.isOpen(0) || !model.isOpen(6)))
+        return 3;
+/*
+      // try "open" corner
+      else if (model.isOpen(0) && (model.isOpen(3) && model.isOpen(1)))
+        return 0;
+      else if (model.isOpen(2) && (model.isOpen(1) && model.isOpen(5)))
+        return 2;
+      else if (model.isOpen(6) && (model.isOpen(3) && model.isOpen(7)))
+        return 6;
+      else if (model.isOpen(8) && (model.isOpen(7) && model.isOpen(5)))
+        return 8;
+*/
         /*
         */
     }
@@ -529,6 +580,7 @@ class TestExpert {
 
   // HACK: allow overriding fails
   updateFails() {
+    /*
     if ((this.model.slots[0] == 5) &&
         (this.model.slots[1] == 5) &&
         (this.model.slots[2] == 1) &&
@@ -539,7 +591,34 @@ class TestExpert {
         (this.model.slots[7] == 0) &&
         (this.model.slots[8] == 1))
         return;
+    */
     this.fails++;
+  }
+
+  dumpBoard() {
+    var str;
+    var i=0;
+    str = "";
+    for (; i<3; i++) {
+      if (this.model.slots[i] === 0) str += ".";
+      if (this.model.slots[i] === 1) str += "X";
+      if (this.model.slots[i] === 5) str += "0";
+    }
+    console.log(str);
+    str = "";
+    for (; i<6; i++) {
+      if (this.model.slots[i] === 0) str += ".";
+      if (this.model.slots[i] === 1) str += "X";
+      if (this.model.slots[i] === 5) str += "0";
+    }
+    console.log(str);
+    str = "";
+    for (; i<9; i++) {
+      if (this.model.slots[i] === 0) str += ".";
+      if (this.model.slots[i] === 1) str += "X";
+      if (this.model.slots[i] === 5) str += "0";
+    }
+    console.log(str);
   }
 
   test(level, userSlot) {
@@ -558,7 +637,8 @@ class TestExpert {
     // update user move
     console.log(level + ": user: " + userSlot);
     this.model.move(this.userXor0, userSlot);
-    console.log(this.model.slots);
+    //console.log(this.model.slots);
+    this.dumpBoard();
     console.log(this.model.moves);
 
     // check if done after user move
@@ -589,7 +669,8 @@ class TestExpert {
       console.log(level + ": ERROR: playerSlot < 0");
     }
     this.model.move(this.playerXor0, playerSlot);
-    console.log(this.model.slots);
+    //console.log(this.model.slots);
+    this.dumpBoard();
     console.log(this.model.moves);
 
     // check if done after expert player move
