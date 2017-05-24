@@ -142,12 +142,13 @@ if SITE == 2
   ]
 
   def clickB(id)
+    sleep 1 # account for visual effects
     $browser.iframe(:id, "result").button(:class => id).wait_until_present.click
   end
 
   def clickI(id)
+    sleep 1 # account for visual effects
     $browser.iframe(:id, "result").li(:class => id).i.wait_until_present.click
-    #sleep 0.2
   end
 
   def isVisable(id)
