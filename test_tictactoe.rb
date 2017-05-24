@@ -13,70 +13,177 @@ APP_VERSION = "0.1"
 
 DEFAULT_RANDOM_CNT = 100
 
-# BELOW - app specfic variables and functions
-# for my codepen: https://codepen.io/sd3x/full/RVqxZz
-GAMES_RATE   = 10
-STAT_ID      = "gstat"
-STAT_INPLAY  = "game in progess..."
-STAT_WINX    = "X wins!!!"
-STAT_WINO    = "0 wins!!!"
-STAT_DRAW    = "draw"
-$allIds      = [
-  "c0", "c1", "c2",
-  "c3", "c4", "c5",
-  "c6", "c7", "c8"
-]
+# TODO clean this up, maybe selectable from command line, and as classes
+SITE = 0  # my site local
+#SITE = 1  # my site on code pen
+#SITE = 2  # example site on code pen
 
-def startSequence()
-  click("b7")  # clear
-  click("b1")  # _X_
-  click("b3")  # _1_
-  click("b5")  # _on__
-  click("b9")  # _1st_
+###########################################################
+# SITE == 0 - my site local
+###########################################################
+if SITE == 0
+  # BELOW - app specfic variables and functions
+  URL = "file:///Users/Al/Projects/freecodecamp/project-tic-tac-toe/index.html"
+  GAMES_RATE   = 10
+  STAT_INPLAY  = "game in progess..."
+  STAT_DRAW    = "draw"
+  STAT_LOSE    = "0 wins!!!"
+  STAT_WIN     = "X wins!!!"
+  $allIds      = [
+    "c0", "c1", "c2",
+    "c3", "c4", "c5",
+    "c6", "c7", "c8"
+  ]
+
+  def click(id)
+    $browser.button(:id => id).wait_until_present.click
+  end
+
+  def clickSpan(id)
+    $browser.span(:id => id).click
+  end
+
+  def getStatStr(id)
+    val = $browser.div(:id => id).text
+    val
+  end
+
+  def startSequence()
+    click("b7")  # clear
+    click("b1")  # _X_
+    click("b3")  # _1_
+    click("b5")  # _on__
+    click("b9")  # _1st_
+  end
+
+  def clearSequence()
+    click("b7")  # clear
+  end
+
+  def isMessage(msg)
+    getStatStr("gstat").include?(msg)
+  end
+
+  def clickPlay(id)
+    clickSpan(id)
+  end
+  # ABOVE - app specfic variables and functions
 end
 
-def clearSequence()
-  click("b7")  # clear
+###########################################################
+# SITE == 1 - my site on code pen
+###########################################################
+if SITE == 1
+  # BELOW - app specfic variables and functions
+  URL = "https://codepen.io/sd3x/full/RVqxZz"
+  GAMES_RATE   = 10
+  STAT_INPLAY  = "game in progess..."
+  STAT_DRAW    = "draw"
+  STAT_LOSE    = "0 wins!!!"
+  STAT_WIN     = "X wins!!!"
+
+  $allIds      = [
+    "c0", "c1", "c2",
+    "c3", "c4", "c5",
+    "c6", "c7", "c8"
+  ]
+
+  def click(id)
+    $browser.iframe(:id, "result").button(:id => id).wait_until_present.click
+  end
+
+  def clickSpan(id)
+    $browser.iframe(:id, "result").span(:id => id).click
+  end
+
+  def getStatStr(id)
+    val = $browser.iframe(:id, "result").div(:id => id).text
+    val
+  end
+
+  def startSequence()
+    click("b7")  # clear
+    click("b1")  # _X_
+    click("b3")  # _1_
+    click("b5")  # _on__
+    click("b9")  # _1st_
+  end
+
+  def clearSequence()
+    click("b7")  # clear
+  end
+
+  def isMessage(msg)
+    getStatStr("gstat").include?(msg)
+  end
+
+  def clickPlay(id)
+    clickSpan(id)
+  end
+  # ABOVE - app specfic variables and functions
 end
 
-def clickPlay(id)
-  clickSpan(id)
-end
-# ABOVE - app specfic variables and functions
 
-'''
-# BELOW - app specfic variables and functions
-# for example codepen: https://codepen.io/freeCodeCamp/full/KzXQgy
-GAMES_RATE   = 10
-STAT_ID      = "gstat"
-STAT_INPLAY  = "game in progess..."
-STAT_WINX    = "X wins!!!"
-STAT_WINO    = "0 wins!!!"
-STAT_DRAW    = "draw"
-$allIds      = [
-  "1", "2", "3",
-  "4", "5", "6",
-  "7", "8", "9"
-]
+###########################################################
+# SITE == 2 - example site on code pen
+###########################################################
+if SITE == 2
+  # BELOW - app specfic variables and functions
+  URL = "https://codepen.io/freeCodeCamp/full/KzXQgy"
+  GAMES_RATE   = 10
+  STAT_INPLAY  = "" # empty if in play
+  STAT_DRAW    = "draw-message"
+  STAT_LOSE    = "lose-message"
+  STAT_WIN     = "win-message"
+  $allIds      = [
+    "1", "2", "3",
+    "4", "5", "6",
+    "7", "8", "9"
+  ]
 
-def startSequence()
-  clickButtonClass("one-player")
-  clickButtonClass("choose-x")
-end
+  def clickB(id)
+    $browser.iframe(:id, "result").button(:class => id).wait_until_present.click
+  end
 
-def clearSequence()
-  clickButtonClass("hard-reset")
-  clickButtonClass("one-player")
-  clickButtonClass("choose-x")
-end
+  def clickI(id)
+    $browser.iframe(:id, "result").li(:class => id).i.wait_until_present.click
+    #sleep 0.2
+  end
 
-def clickPlay(id)
-  # TODO stuck here
-  puts id
-  clickIClass(id)
+  def isVisable(id)
+    return $browser.iframe(:id, "result").div(:class => id).visible?
+  end
+
+  def startSequence()
+    clickB("one-player")
+    clickB("choose-x")
+  end
+
+  def clearSequence()
+    clickB("hard-reset")
+    clickB("one-player")
+    clickB("choose-x")
+  end
+
+  def isMessage(msg)
+    if (msg == STAT_INPLAY)
+      return (not isVisable(STAT_DRAW)     \
+              and not isVisable(STAT_LOSE) \
+              and not isVisable(STAT_WIN))
+    end
+    return isVisable(msg)
+  end
+
+  def clickPlay(id)
+    begin
+      clickI(id)
+    rescue
+      # ignore errors about click going to another element
+      # will happen when game is over
+    end
+  end
+  # ABOVE - app specfic variables and functions
 end
-# ABOVE - app specfic variables and functions
-'''
 
 ###########################################################
 # TEST - random
@@ -97,7 +204,7 @@ def test_Random
   for i in 0..$options.cnt-1
     clearSequence()
     saved = []
-    while (getStatStr(STAT_ID).include?(STAT_INPLAY))
+    while (isMessage(STAT_INPLAY))
       id = $allIds[ prng.rand(0..max) ]
       next if saved.include? id # optimize
       saved << id
@@ -105,12 +212,12 @@ def test_Random
     end
     # progress
     puts "games: %d..." % i if (i> 0 && i%GAMES_RATE == 0)
-    wins  += 1               if (getStatStr(STAT_ID).include?(STAT_WINO))
-    draws += 1               if (getStatStr(STAT_ID).include?(STAT_DRAW))
+    wins  += 1               if (isMessage(STAT_LOSE))
+    draws += 1               if (isMessage(STAT_DRAW))
     # error check
-    if (getStatStr(STAT_ID).include?(STAT_WINX))
+    if (isMessage(STAT_WIN))
       puts "games: %d" % i
-      puts "ERROR: unexpected \"%s\"" % STAT_WINX
+      puts "ERROR: unexpected \"Win\" by user"
       puts saved
       return
     end
@@ -130,7 +237,6 @@ $options = OpenStruct.new
 $options.seed = Random.new_seed
 $options.cnt = DEFAULT_RANDOM_CNT
 parser = OptionParser.new do |opt|
-    opt.on('-u', '--url <url>',  'url to web app')                  { |o| $options.url     = o      }
     opt.on('-s', '--seed <num>', '(optional) randon seed)')         { |o| $options.seed    = o.to_i }
     opt.on('-c', '--count <num>','(optional) random count (games)') { |o| $options.cnt     = o.to_i }
     opt.on('-D', '--Debug',      'debug mode, force hang at end')   { |o| $options.debug   = true   }
@@ -164,6 +270,7 @@ if $options.version
     puts "test_tictactoe: version %s" % APP_VERSION
     exit
 end
+$options.url = URL
 if $options.url.nil?
     puts "WARNING: please provide a url"
     exit
@@ -176,39 +283,6 @@ def forceHang
   end
 end
 
-# detect if testing codepen, need to access iframe in that case
-if $options.url.include?("codepen.io")
-  $options.codepen = true
-end
-
-###########################################################
-# BROWSER support
-###########################################################
-def click(id)
-  $browser.button(:id => id).wait_until_present.click                        if !$options.codepen
-  $browser.iframe(:id, "result").button(:id => id).click  if $options.codepen
-end
-
-def clickSpan(id)
-  $browser.span(:id => id).click                           if !$options.codepen
-  $browser.iframe(:id, "result").span(:id => id).click     if $options.codepen
-end
-
-def clickButtonClass(id)
-  $browser.button(:class => id).wait_until_present.click                        if !$options.codepen
-  $browser.iframe(:id, "result").button(:class => id).wait_until_present.click  if $options.codepen
-end
-
-def clickIClass(id)
-  $browser.i(:class => id).wait_until_present.click                        if !$options.codepen
-  $browser.iframe(:id, "result").i(:class => id).wait_until_present.click  if $options.codepen
-end
-
-def getStatStr(id)
-  val = $browser.div(:id => id).text                       if !$options.codepen
-  val = $browser.iframe(:id, "result").div(:id => id).text if $options.codepen
-  val
-end
 
 ###########################################################
 # MAIN
