@@ -19,6 +19,7 @@ DEFAULT_RANDOM_CNT = 100
 
 # export PATH=$PATH:/Users/Al/.chromedriver
 #url = "file:///Users/Al/Projects/freecodecamp/project-tic-tac-toe/index.html"
+#time ruby test_tictactoe.rb --url "file:///Users/Al/Projects/freecodecamp/project-tic-tac-toe/index.html" -c 10000
 
 ###########################################################
 # program OPTIONS
